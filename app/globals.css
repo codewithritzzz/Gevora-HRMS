@@ -723,9 +723,20 @@ h2 { font-size: 1.125rem; font-weight: 600; }
 .cal-cell.absent { background: hsl(0 84% 60% / 0.1); }
 .cal-cell.weekoff { background: hsl(var(--secondary)); opacity: 0.5; }
 .cal-cell.leave { background: hsl(222 89% 55% / 0.1); }
+.cal-cell.paid_leave { background: hsl(271 76% 53% / 0.12); }
 .cal-cell.holiday { background: hsl(38 92% 50% / 0.1); }
 .cal-cell .cal-date { font-size: 0.875rem; font-weight: 600; }
 .cal-cell .cal-status { font-size: 0.5625rem; color: hsl(var(--muted-foreground)); text-transform: capitalize; }
+
+/* Large interactive calendar (dashboard) */
+.cal-grid-large { gap: 0.5rem; }
+.cal-cell-large { min-height: 84px; padding: 0.625rem 0.5rem; border: 1px solid transparent; cursor: pointer; text-align: left; align-items: flex-start; width: 100%; font: inherit; }
+.cal-cell-large:hover { border-color: hsl(var(--primary) / 0.3); transform: translateY(-1px); box-shadow: 0 2px 8px -2px hsl(var(--primary) / 0.15); }
+.cal-cell-large:disabled { cursor: default; }
+.cal-cell-large:disabled:hover { border-color: transparent; transform: none; box-shadow: none; }
+.cal-cell-large .cal-date { font-size: 0.9375rem; font-weight: 700; }
+.cal-cell-large .cal-status { font-size: 0.625rem; line-height: 1.2; }
+.cal-cell-large.today { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; }
 .cal-legend { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; font-size: 0.75rem; color: hsl(var(--muted-foreground)); }
 .cal-legend span { display: flex; align-items: center; gap: 0.3125rem; }
 .cal-legend i { width: 10px; height: 10px; border-radius: 3px; }

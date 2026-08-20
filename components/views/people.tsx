@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { Search, ChevronDown, Plus, Check, X, Building2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
-import type { EmployeePresence, Profile, RegularizationRequest, OvertimeRequest } from '@/lib/types';
+import type { EmployeePresence, Profile, RegularizationRequest, OvertimeRequest, LeaveRequest } from '@/lib/types';
 import { formatDate } from '@/lib/helpers';
 import { PageHeading, PanelHeading, Avatar, StatusPill, EmptyLine } from '@/components/shared';
 
@@ -16,6 +16,7 @@ export function PeopleView({ isStaff }: { isStaff: boolean }) {
   const [departments, setDepartments] = useState<string[]>([]);
   const [regApprovals, setRegApprovals] = useState<RegularizationRequest[]>([]);
   const [otApprovals, setOtApprovals] = useState<OvertimeRequest[]>([]);
+  const [leaveApprovals, setLeaveApprovals] = useState<LeaveRequest[]>([]);
   const [profilesMap, setProfilesMap] = useState<Map<string, string>>(new Map());
   const [showOrg, setShowOrg] = useState(false);
   const [orgData, setOrgData] = useState<Profile[]>([]);
@@ -35,13 +36,15 @@ export function PeopleView({ isStaff }: { isStaff: boolean }) {
   };
 
   const loadApprovals = async () => {
-    const [regRes, otRes, profRes] = await Promise.all([
+    const [regRes, otRes, leaveRes, profRes] = await Promise.all([
       supabase.from('regularization_requests').select('*, profiles!regularization_requests_user_id_fkey(full_name)').eq('status', 'pending').order('created_at', { ascending: false }),
       supabase.from('overtime_requests').select('*, profiles!overtime_requests_user_id_fkey(full_name)').eq('status', 'pending').order('created_at', { ascending: false }),
+      supabase.from('leave_requests').select('*, user_id').eq('status', 'pending').order('created_at', { ascending: false }),
       supabase.from('profiles').select('id, full_name, reports_to, designation, department, avatar_url'),
     ]);
     setRegApprovals((regRes.data as RegularizationRequest[] | null) ?? []);
     setOtApprovals((otRes.data as OvertimeRequest[] | null) ?? []);
+    setLeaveApprovals((leaveRes.data as (LeaveRequest & { user_id: string })[] | null) ?? []);
     const profs = (profRes.data as Profile[] | null) ?? [];
     const map = new Map<string, string>();
     profs.forEach((p) => map.set(p.id, p.full_name));
@@ -84,7 +87,21 @@ export function PeopleView({ isStaff }: { isStaff: boolean }) {
     toast({ title: 'Overtime rejected' });
   };
 
-  const pendingCount = regApprovals.length + otApprovals.length;
+  const approveLeave = async (id: string) => {
+    const { error } = await supabase.rpc('approve_leave', { p_request_id: id });
+    if (error) { toast({ title: 'Approval failed', description: error.message, variant: 'destructive' }); return; }
+    setLeaveApprovals((current) => current.filter((l) => l.id !== id));
+    toast({ title: 'Leave approved', description: 'Calendar updated with paid leave days.' });
+  };
+
+  const rejectLeave = async (id: string) => {
+    const { error } = await supabase.rpc('reject_leave', { p_request_id: id });
+    if (error) { toast({ title: 'Rejection failed', description: error.message, variant: 'destructive' }); return; }
+    setLeaveApprovals((current) => current.filter((l) => l.id !== id));
+    toast({ title: 'Leave rejected' });
+  };
+
+  const pendingCount = regApprovals.length + otApprovals.length + leaveApprovals.length;
 
   return (
     <>
@@ -95,7 +112,7 @@ export function PeopleView({ isStaff }: { isStaff: boolean }) {
       {(pendingCount > 0) && (
         <div className="notice-banner">
           <div className="notice-icon"><Check size={18} /></div>
-          <div><b>{pendingCount} approvals waiting</b><span>{regApprovals.length} regularization · {otApprovals.length} overtime</span></div>
+          <div><b>{pendingCount} approvals waiting</b><span>{regApprovals.length} regularization · {otApprovals.length} overtime · {leaveApprovals.length} leave</span></div>
         </div>
       )}
 
@@ -129,6 +146,24 @@ export function PeopleView({ isStaff }: { isStaff: boolean }) {
               <div className="approval-actions">
                 <button className="approve-btn" onClick={() => approveOt(o.id)}><Check size={14} /> Approve</button>
                 <button className="reject-btn" onClick={() => rejectOt(o.id)}><X size={14} /> Reject</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {leaveApprovals.length > 0 && (
+        <div className="panel" style={{ marginBottom: '1rem' }}>
+          <PanelHeading eyebrow="PENDING" title="Leave approvals" />
+          {leaveApprovals.map((l) => (
+            <div className="approval-card" key={l.id}>
+              <div className="ac-info">
+                <b>{profilesMap.get((l as LeaveRequest & { user_id: string }).user_id) ?? 'Employee'} — {l.leave_type}</b>
+                <span>{formatDate(l.start_date)} – {formatDate(l.end_date)} · {l.days} days · {l.reason}</span>
+              </div>
+              <div className="approval-actions">
+                <button className="approve-btn" onClick={() => approveLeave(l.id)}><Check size={14} /> Approve</button>
+                <button className="reject-btn" onClick={() => rejectLeave(l.id)}><X size={14} /> Reject</button>
               </div>
             </div>
           ))}

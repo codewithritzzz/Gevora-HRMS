@@ -246,7 +246,7 @@ function AttendanceList({ attendanceList, holidays, calMonth, setCalMonth }: {
               <div key={i} className={`cal-cell ${cell.status === 'empty' ? 'empty' : cell.status} ${cell.day && isToday(new Date(year, month, cell.day)) ? 'today' : ''}`}>
                 {cell.day && <span className="cal-date">{cell.day}</span>}
                 {cell.day && cell.status !== 'empty' && cell.status !== 'weekoff' && (
-                  <span className="cal-status">{cell.status.replace(/_/g, ' ')}</span>
+                  <span className="cal-status">{cell.status === 'paid_leave' ? 'Paid leave' : cell.status.replace(/_/g, ' ')}</span>
                 )}
               </div>
             ))}
@@ -254,7 +254,7 @@ function AttendanceList({ attendanceList, holidays, calMonth, setCalMonth }: {
           <div className="cal-legend">
             <span><i style={{ background: 'hsl(142 71% 45% / 0.3)' }} /> Present</span>
             <span><i style={{ background: 'hsl(0 84% 60% / 0.3)' }} /> Absent</span>
-            <span><i style={{ background: 'hsl(222 89% 55% / 0.2)' }} /> Leave</span>
+            <span><i style={{ background: 'hsl(271 76% 53% / 0.2)' }} /> Paid leave</span>
             <span><i style={{ background: 'hsl(38 92% 50% / 0.2)' }} /> Holiday</span>
             <span><i style={{ background: 'hsl(var(--secondary))' }} /> Weekend</span>
           </div>

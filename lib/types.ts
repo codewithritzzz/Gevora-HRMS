@@ -16,6 +16,8 @@ export type Profile = {
   address?: string | null;
   reports_to?: string | null;
   shift_id?: string | null;
+  leave_balance?: number;
+  created_at?: string;
 };
 
 export type Attendance = {
@@ -117,4 +119,11 @@ export type Holiday = {
 export type View = 'Overview' | 'Attendance' | 'Leave' | 'Documents' | 'People' | 'Reports' | 'Settings';
 
 export type AttendanceTab = 'list' | 'regularization' | 'overtime' | 'shifts';
+
+export type LeaveBalance = {
+  user_id: string;
+  available: number;
+  used_days: number;
+  accrued: number;
+};
 export type DocumentsTab = 'documents' | 'payslips';
